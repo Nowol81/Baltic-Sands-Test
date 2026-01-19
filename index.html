@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baltic Sands Clicker</title>
+    <script src="https://unpkg.com/0xsequence@latest/dist/0xsequence.umd.min.js"></script>
+    <style>
+        body { background: #1a1a1a; color: #ffbf00; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        #amber { width: 180px; height: 180px; background: radial-gradient(circle, #ffcc33, #e68a00); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 30px rgba(255, 191, 0, 0.6); cursor: pointer; transition: transform 0.1s; margin: 30px auto; display: none; }
+        #amber:active { transform: scale(0.95); }
+        button { padding: 16px 32px; font-size: 18px; background: #e68a00; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        button:hover { background: #ff9900; }
+        #status { font-size: 20px; margin-bottom: 10px; }
+        #counter { font-size: 24px; color: white; display: none; }
+    </style>
+</head>
+<body>
+    <h1>Baltic Sands</h1>
+    <p id="status">Zaloguj się, aby zbierać ATT</p>
+    
+    <button id="loginBtn" onclick="connect()">ZALOGUJ PRZEZ E-MAIL</button>
+    
+    <div id="amber" onclick="clickAmber()"></div>
+    <div id="counter">Bursztyny: <span id="clicks">0</span></div>
+
+    <script>
+        // TWOJE DANE Z BUILDERA - SPRAWDZONE I POPRAWIONE
+        const ACCESS_KEY = 'AQAAAAAAALh595gDacXW_KIiT1eAhb8UaJY';
+        const CONTRACT_ADDRESS = '0xf58c03c0b3aa421626160d400265cc496c05ab5b';
+
+        // Inicjalizacja portfela Sequence
+        const sequence = window['0xsequence'];
+        const wallet = sequence.initWallet(ACCESS_KEY, { network: 'soneium-minato' });
+
+        async function connect() {
+            try {
+                console.log("Łączenie z Sequence...");
+                const connectDetails = await wallet.connect({ 
+                    app: 'Baltic Sands', 
+                    authorize: true,
+                    settings: {
+                        theme: "dark",
+                        bannerUrl: "https://sunny-mooncake-f2f6e5.netlify.app/logo.png"
+                    }
+                });
+
+                if (connectDetails.connected) {
+                    console.log("Połączono! Adres portfela:", connectDetails.session.accountAddress);
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('amber').style.display = 'block';
+                    document.getElementById('counter').style.display = 'block';
+                    document.getElementById('status').innerText = 'Klikaj w bursztyn!';
+                }
+            } catch (error) {
+                console.error("Błąd logowania:", error);
+                alert("Nie udało się zalogować. Sprawdź, czy adres strony jest dodany w Sequence Builderze!");
+            }
+        }
+
+        let clicks = 0;
+        function clickAmber() {
+            clicks++;
+            document.getElementById('clicks').innerText = clicks;
+            
+            // Co 10 kliknięć pokazujemy komunikat
+            if (clicks % 10 === 0) {
+                console.log("Znaleziono skarb! Przygotowanie do wysyłki tokenów...");
+                alert("Znalazłeś 10 bursztynów! W pełnej wersji gry teraz otrzymałbyś tokeny ATT.");
+            }
+        }
+    </script>
+</body>
+</html>
