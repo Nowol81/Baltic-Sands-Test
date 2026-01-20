@@ -2,105 +2,65 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baltic Sands - Soneium Mining</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@0xsequence/waas@latest/dist/waas.umd.js"></script>
-    
+    <title>Baltic Sands - Soneium</title>
+    <script src="https://unpkg.com/@0xsequence/waas@latest/dist/waas.umd.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #f0f2f5; padding-top: 50px; }
-        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; width: 350px; }
-        button { background-color: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        button:disabled { background-color: #a78bfa; cursor: wait; }
-        .hidden { display: none; }
-        #status { margin-top: 20px; font-size: 13px; color: #666; }
-        #amber-stone { font-size: 80px; cursor: pointer; margin: 20px; user-select: none; }
+        body { font-family: sans-serif; text-align: center; background: #f0f2f5; padding-top: 50px; }
+        .card { background: white; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        button { background: #7c3aed; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #ccc; }
     </style>
 </head>
 <body>
-
-<div class="card">
-    <h1>Baltic Sands 🌊</h1>
-    <p>Mining Game on Soneium Minato</p>
-
-    <div id="login-section">
-        <button id="login-btn" disabled>ŁADOWANIE SYSTEMU...</button>
-        <p id="status">Inicjowanie Sequence WaaS...</p>
+    <div class="card">
+        <h1>Baltic Sands 🌊</h1>
+        <button id="login-btn" disabled>INICJOWANIE...</button>
+        <p id="status">Czekam na Sequence SDK...</p>
     </div>
 
-    <div id="game-section" class="hidden">
-        <div id="amber-stone">💎</div>
-        <h2>Bursztyn: <span id="counter">0</span></h2>
-        <p><small>Portfel: <span id="wallet-addr">...</span></small></p>
-    </div>
-</div>
+    <script>
+        // Parametry z Twojej instrukcji
+        const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+        const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-<script>
-    // DANE Z TWOJEJ ZAKŁADKI INTEGRATION
-    const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
-    const W_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
+        let waas;
 
-    let seq;
+        async function init() {
+            const status = document.getElementById('status');
+            const btn = document.getElementById('login-btn');
 
-    // Funkcja szukająca biblioteki (poprawka błędu z konsoli)
-    function getSDK() {
-        return window.SequenceWaaS || (window.sequence && window.sequence.waas ? window.sequence.waas.SequenceWaaS : null);
-    }
+            // Kluczowa zmiana: Sequence w wersji UMD wystawia się jako SequenceWaaS
+            const SDK = window.SequenceWaaS ? window.SequenceWaaS.SequenceWaaS : null;
 
-    const checkLibrary = setInterval(() => {
-        const SDK = getSDK();
-        if (SDK) {
-            clearInterval(checkLibrary);
-            try {
-                // Konfiguracja oparta na Twoim screenie
-                seq = new SDK({
-                    projectAccessKey: P_KEY,
-                    waasConfigKey: W_KEY,
-                    network: 1946 // Soneium Minato
+            if (SDK) {
+                waas = new SDK({
+                    projectAccessKey: projectAccessKey,
+                    waasConfigKey: waasConfigKey,
+                    network: 1946 // Soneium Minato z instrukcji
                 });
-                
-                document.getElementById('login-btn').disabled = false;
-                document.getElementById('login-btn').innerText = "ZALOGUJ SIĘ I GRAJ";
-                document.getElementById('status').innerText = "System gotowy. Możesz kopać!";
-            } catch (e) {
-                document.getElementById('status').innerText = "Błąd konfiguracji: " + e.message;
+                btn.disabled = false;
+                btn.innerText = "ZALOGUJ SIĘ";
+                status.innerText = "Gotowy do logowania ✅";
+            } else {
+                setTimeout(init, 1000); // Ponów jeśli jeszcze się nie załadowało
             }
         }
-    }, 1000);
 
-    document.getElementById('login-btn').addEventListener('click', async () => {
-        const status = document.getElementById('status');
-        status.innerText = "Łączenie z siecią Soneium...";
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            try {
+                // Logowanie e-mail - zgodnie z instrukcją
+                const wallet = await waas.signIn({
+                    signInOptions: { appName: "Baltic Sands", email: true }
+                });
+                const addr = await wallet.getAddress();
+                alert("Zalogowano! Twój adres: " + addr);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').innerHTML = "<b style='color:red'>Błąd! Kliknij UPDATE w Builderze.</b>";
+            }
+        });
 
-        try {
-            // Logowanie e-mail - zgodnie z Twoim projektem
-            const wallet = await seq.signIn({
-                signInOptions: { 
-                    appName: "Baltic Sands",
-                    email: true,
-                    google: false, // Na razie wyłączone dla uproszczenia testu
-                    apple: false
-                }
-            });
-
-            const address = await wallet.getAddress();
-            document.getElementById('wallet-addr').innerText = address;
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('game-section').classList.remove('hidden');
-
-        } catch (err) {
-            console.error(err);
-            // Jeśli tu wejdzie, musisz kliknąć fioletowy przycisk w Builderze!
-            status.innerHTML = "<b style='color:red;'>Błąd! Sprawdź Allowed Origins i kliknij UPDATE w Builderze.</b>";
-        }
-    });
-
-    let count = 0;
-    document.getElementById('amber-stone').addEventListener('click', () => {
-        count++;
-        document.getElementById('counter').innerText = count;
-    });
-</script>
-
+        init();
+    </script>
 </body>
 </html>
