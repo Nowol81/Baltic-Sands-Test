@@ -34,70 +34,21 @@
             <h2>Bursztyn: <span id="counter">0</span></h2>
             <p><small>Portfel: <span id="wallet-addr">...</span></small></p>
         </div>
-        <p>Klikaj w diament, aby zbierać punkty!</p>
+        <p>Klikaj w bursztyn, aby zbierać punkty!</p>
     </div>
 </div>
 
 <script>
-    // --- TWOJA KONFIGURACJA Z ZAKŁADKI INTEGRATION ---
-    const PROJECT_ACCESS_KEY = 'AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44'; 
-    const WAAS_CONFIG_KEY = 'eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=';
+    // Dane z Twojej zakładki Integration
+    const P_ACCESS_KEY = 'AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44'; 
+    const W_CONFIG_KEY = 'eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=';
 
-    // Inicjalizacja Sequence WaaS
-    const sequence = new sequence.waas.SequenceWaaS({
-        projectAccessKey: PROJECT_ACCESS_KEY,
-        waasConfigKey: WAAS_CONFIG_KEY,
-        network: 'soneium-minato'
-    });
+    let seqWallet;
 
-    let count = 0;
-    const loginBtn = document.getElementById('login-btn');
-    const loginSection = document.getElementById('login-section');
-    const gameSection = document.getElementById('game-section');
-    const counterDisplay = document.getElementById('counter');
-    const amberStone = document.getElementById('amber-stone');
-    const walletAddrDisplay = document.getElementById('wallet-addr');
-    const statusText = document.getElementById('status');
-
-    // Obsługa logowania e-mail
-    loginBtn.addEventListener('click', async () => {
-        statusText.innerText = "Łączenie z Soneium Minato...";
+    // Inicjalizacja po załadowaniu strony
+    window.onload = () => {
         try {
-            // Logowanie - Sequence otworzy własne okno (Modal)
-            const wallet = await sequence.signIn({
-                signInOptions: { 
-                    appName: 'Baltic Sands',
-                    // Wyłączamy zbędne opcje, zostawiamy czysty e-mail
-                    google: false,
-                    apple: false
-                }
-            });
-
-            const address = await wallet.getAddress();
-            console.log('Połączono portfel:', address);
-
-            // Aktualizacja interfejsu
-            walletAddrDisplay.innerText = address.substring(0,6) + "..." + address.substring(38);
-            loginSection.classList.add('hidden');
-            gameSection.classList.remove('hidden');
-            
-        } catch (error) {
-            console.error('Błąd logowania:', error);
-            statusText.innerHTML = "<span style='color:red;'>Błąd logowania! Sprawdź Allowed Origins w Builderze.</span>";
-        }
-    });
-
-    // Mechanika gry
-    amberStone.addEventListener('click', () => {
-        count++;
-        counterDisplay.innerText = count;
-        
-        // Co 10 kliknięć logujemy postęp
-        if (count % 10 === 0) {
-            console.log("Gotowy do zapisu postępu na blockchainie Soneium...");
-        }
-    });
-</script>
-
-</body>
-</html>
+            // Tworzymy instancję SequenceWaaS korzystając z załadowanej biblioteki window.sequence
+            seqWallet = new window.sequence.waas.SequenceWaaS({
+                projectAccessKey: P_ACCESS_KEY,
+                waasConfigKey: W_
