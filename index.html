@@ -2,76 +2,68 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Baltic Sands - Debug Mode</title>
-    <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
+    <title>Baltic Sands - Soneium</title>
+    <script src="https://unpkg.com/@0xsequence/waas@latest/dist/waas.umd.js"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
-        .box { background: #1e293b; padding: 30px; border-radius: 20px; display: inline-block; min-width: 300px; }
-        #debug-log { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 20px; text-align: left; border-radius: 5px; max-height: 150px; overflow-y: auto; }
-        button { background: #7c3aed; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
-        button:disabled { background: #475569; }
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
+        .card { background: #1e293b; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        button { background: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        #status { margin-top: 20px; color: #94a3b8; font-size: 13px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>Baltic Sands 🌊</h1>
-        <button id="btn" disabled>INICJOWANIE...</button>
-        <div id="debug-log">Log: Czekam na start...</div>
-    </div>
 
-    <script>
-        const log = (msg) => { document.getElementById('debug-log').innerText += "\n> " + msg; };
-        
-        // Klucze z Twojego Playground
-        const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
-        const W_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
+<div class="card">
+    <h1>Baltic Sands 🌊</h1>
+    <button id="login-btn">ZALOGUJ SIĘ I GRAJ</button>
+    <p id="status">Gotowy do startu...</p>
+</div>
 
-        async function init() {
-            log("Szukam biblioteki Sequence...");
-            // Sprawdzamy różne możliwe ścieżki eksportu biblioteki Connect
-            const seq = window.sequenceConnect || (window.sequence ? window.sequence.connect : null);
+<script>
+    // TWOJE NOWE KLUCZE Z "Sequence.js"
+    const PROJECT_ACCESS_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+    const WAAS_CONFIG_KEY = "eyJ3cm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
+
+    const btn = document.getElementById('login-btn');
+    const status = document.getElementById('status');
+
+    btn.onclick = async () => {
+        status.innerText = "Inicjowanie Sequence WaaS...";
+        btn.disabled = true;
+
+        try {
+            // Sprawdzenie czy biblioteka się załadowała
+            if (!window.sequenceWaas) {
+                throw new Error("Biblioteka JS nie załadowała się z serwera.");
+            }
+
+            // Inicjalizacja instancji WaaS pod Soneium Minato
+            const waas = new sequenceWaas.SequenceWaaS({
+                projectAccessKey: PROJECT_ACCESS_KEY,
+                waasConfigKey: WAAS_CONFIG_KEY,
+                network: 'soneium-minato'
+            });
+
+            status.innerText = "Oczekiwanie na logowanie e-mail...";
             
-            if (!seq) {
-                log("BŁĄD: Biblioteka nie załadowana. Próbuję ponownie...");
-                setTimeout(init, 1000);
-                return;
-            }
+            // Wywołanie logowania - otworzy okno pop-up
+            const result = await waas.signIn({
+                projectName: "Baltic Sands"
+            }, "session-baltic-sands");
 
-            log("Biblioteka znaleziona. Konfiguruję...");
-            try {
-                const config = seq.createConfig('waas', {
-                    projectAccessKey: P_KEY,
-                    waasConfigKey: W_KEY,
-                    defaultChainId: 1946,
-                    appName: "Baltic Sands",
-                    email: true,
-                    renderInline: false
-                });
+            status.innerText = "ZALOGOWANO! Adres: " + result.walletAddress;
+            btn.innerText = "GRA ZACZĘTA";
+            console.log("Adres portfela:", result.walletAddress);
 
-                const connector = new seq.SequenceConnect(config);
-                const btn = document.getElementById('btn');
-                btn.disabled = false;
-                btn.innerText = "ZALOGUJ SIĘ";
-                log("SYSTEM GOTOWY ✅");
-
-                btn.onclick = async () => {
-                    log("Otwieram okno logowania...");
-                    try {
-                        const res = await connector.connect();
-                        if (res.connected) {
-                            log("ZALOGOWANO: " + res.session.accountAddress);
-                            alert("Sukces! Adres: " + res.session.accountAddress);
-                        }
-                    } catch (e) {
-                        log("BŁĄD LOGOWANIA: " + e.message);
-                    }
-                };
-            } catch (err) {
-                log("BŁĄD KONFIGURACJI: " + err.message);
-            }
+        } catch (err) {
+            console.error(err);
+            status.innerText = "BŁĄD: " + err.message;
+            btn.disabled = false;
+            btn.innerText = "SPRÓBUJ PONOWNIE";
         }
+    };
+</script>
 
-        window.onload = init;
-    </script>
 </body>
 </html>
