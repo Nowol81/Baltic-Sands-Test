@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baltic Sands - Mining Game</title>
+    <title>Baltic Sands - Soneium Mining</title>
     <script src="https://nodes.sequence.app/umd/sequence.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background-color: #f0f2f5; padding-top: 50px; }
         .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block; }
-        button { background-color: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button { background-color: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
         .hidden { display: none; }
-        #status { margin-top: 15px; font-size: 14px; color: #555; }
+        #amber-stone { font-size: 80px; cursor: pointer; margin: 20px; user-select: none; }
     </style>
 </head>
 <body>
@@ -20,12 +21,12 @@
     <p>Mining Game on Soneium Minato</p>
 
     <div id="login-section">
-        <button id="login-btn">ZALOGUJ SIĘ I GRAJ</button>
-        <p id="status">Czekam na inicjalizację portfela...</p>
+        <button id="login-btn" disabled>ŁADOWANIE PORTFELA...</button>
+        <p id="status">Czekam na bibliotekę Sequence...</p>
     </div>
 
     <div id="game-section" class="hidden">
-        <div id="amber-stone" style="font-size: 80px; cursor: pointer;">💎</div>
+        <div id="amber-stone">💎</div>
         <h2>Bursztyn: <span id="counter">0</span></h2>
         <p><small>Portfel: <span id="wallet-addr">...</span></small></p>
     </div>
@@ -33,47 +34,39 @@
 
 <script>
     // TWOJE DANE Z INTEGRACJI
-    const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
-    const W_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
+    const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+    const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
     let seq;
 
-    // Funkcja inicjalizująca portfel
-    async function initSequence() {
-        const status = document.getElementById('status');
-        try {
-            // Czekamy chwilę, aż biblioteka na pewno się załaduje
-            if (typeof window.sequence === 'undefined') {
-                status.innerText = "Błąd: Biblioteka Sequence nie załadowała się. Odśwież stronę (F5).";
-                return;
-            }
+    // Funkcja sprawdzająca gotowość co pół sekundy
+    const checkSDK = setInterval(() => {
+        if (window.sequence && window.sequence.waas) {
+            clearInterval(checkSDK);
+            setupWallet();
+        }
+    }, 500);
 
+    function setupWallet() {
+        try {
             seq = new window.sequence.waas.SequenceWaaS({
-                projectAccessKey: P_KEY,
-                waasConfigKey: W_KEY,
-                network: 1946 
+                projectAccessKey: projectAccessKey,
+                waasConfigKey: waasConfigKey,
+                network: 1946 // Soneium Minato
             });
             
-            status.innerText = "Portfel gotowy. Kliknij przycisk powyżej.";
-            console.log("Sequence SDK gotowe!");
-        } catch (err) {
-            console.error(err);
-            status.innerText = "Błąd inicjalizacji: " + err.message;
+            const btn = document.getElementById('login-btn');
+            btn.disabled = false;
+            btn.innerText = "ZALOGUJ SIĘ I GRAJ";
+            document.getElementById('status').innerText = "Portfel gotowy! ✅";
+        } catch (e) {
+            document.getElementById('status').innerText = "Błąd konfiguracji: " + e.message;
         }
     }
 
-    // Uruchom inicjalizację od razu
-    initSequence();
-
     document.getElementById('login-btn').addEventListener('click', async () => {
         const status = document.getElementById('status');
-        
-        if (!seq) {
-            alert("Portfel nie jest jeszcze gotowy. Poczekaj sekundę.");
-            return;
-        }
-
-        status.innerText = "Otwieranie okna logowania...";
+        status.innerText = "Otwieranie logowania...";
 
         try {
             const wallet = await seq.signIn({
@@ -91,10 +84,9 @@
             document.getElementById('game-section').classList.remove('hidden');
 
         } catch (err) {
-            console.error("Błąd logowania:", err);
-            // Jeśli wyskoczy ten komunikat, to znaczy że na 100% musisz kliknąć "Update Configuration" w Builderze
-            alert("Błąd logowania! Sprawdź czy domena https://nowol81.github.io jest dodana w Builderze i czy zapisałeś to hasłem.");
-            status.innerHTML = "<span style='color:red;'>Błąd: Nieautoryzowana domena.</span>";
+            console.error(err);
+            // Jeśli nadal masz ten błąd, musisz kliknąć "Update Configuration" w Builderze
+            status.innerHTML = "<span style='color:red;'>Błąd! Sprawdź Allowed Origins w Builderze i kliknij Update.</span>";
         }
     });
 
