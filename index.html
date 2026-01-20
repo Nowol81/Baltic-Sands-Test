@@ -2,69 +2,94 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Baltic Sands - Soneium</title>
-    <script src="https://cdn.jsdelivr.net/npm/@0xsequence/waas@latest/dist/waas.umd.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baltic Sands - Soneium Connect</title>
+    
+    <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
+    
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f7f6; padding-top: 50px; }
-        .card { background: white; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 320px; }
-        button { background: #7c3aed; color: white; border: none; padding: 15px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-        button:disabled { background: #cbd5e1; cursor: not-allowed; }
-        #status { margin-top: 20px; font-size: 14px; color: #64748b; }
+        body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding-top: 50px; }
+        .container { max-width: 450px; margin: auto; background: #1e293b; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        #wallet-ui { min-height: 400px; margin-top: 20px; border-radius: 12px; overflow: hidden; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Baltic Sands 🌊</h1>
-        <p>Mining on Soneium Minato</p>
-        <button id="login-btn" disabled>ŁADOWANIE...</button>
-        <div id="status">Sprawdzanie biblioteki...</div>
+
+<div class="container">
+    <h1>Baltic Sands 🌊</h1>
+    <p>Kopalnia na Soneium Minato</p>
+    
+    <div id="wallet-ui"></div>
+
+    <div id="game-section" class="hidden">
+        <div style="font-size: 80px; cursor: pointer;">💎</div>
+        <h2>Bursztyn: <span id="counter">0</span></h2>
+        <p><small id="addr-display"></small></p>
     </div>
+</div>
 
-    <script>
-        // Dane dokładnie z Twojego screena
-        const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
-        const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
+<script>
+    const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+    const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-        let sequenceWaaS;
+    async function initConnect() {
+        // Czekamy na załadowanie biblioteki Connect
+        if (!window.sequenceConnect) {
+            setTimeout(initConnect, 500);
+            return;
+        }
 
-        // Czekamy, aż biblioteka pojawi się w oknie przeglądarki
-        const checkLibrary = setInterval(() => {
-            // W wersji UMD obiekt znajduje się tutaj:
-            const SDK = window.SequenceWaaS ? window.SequenceWaaS.SequenceWaaS : null;
+        const { createConfig, SequenceConnect } = window.sequenceConnect;
 
-            if (SDK) {
-                clearInterval(checkLibrary);
-                try {
-                    sequenceWaaS = new SDK({
-                        projectAccessKey: projectAccessKey,
-                        waasConfigKey: waasConfigKey,
-                        network: 1946 // Soneium Minato
-                    });
-                    
-                    document.getElementById('login-btn').disabled = false;
-                    document.getElementById('login-btn').innerText = "ZALOGUJ SIĘ I GRAJ";
-                    document.getElementById('status').innerText = "System gotowy ✅";
-                } catch (e) {
-                    document.getElementById('status').innerText = "Błąd startu: " + e.message;
-                }
+        // Tworzymy konfigurację IDENTYCZNĄ z Twoim kodem z Playground
+        const config = createConfig('waas', {
+            projectAccessKey,
+            waasConfigKey,
+            defaultChainId: 1946,
+            appName: "Sign in",
+            projectName: "Sign in",
+            email: true,
+            coinbase: false,
+            metaMask: false,
+            defaultTheme: "dark",
+            position: "center",
+            renderInline: true, // Rysuje formularz bezpośrednio w divie
+            inlineTarget: "#wallet-ui", // Cel rysowania
+            wagmiConfig: {
+                multiInjectedProviderDiscovery: false,
             }
-        }, 1000);
+        });
 
-        document.getElementById('login-btn').onclick = async () => {
-            document.getElementById('status').innerText = "Otwieranie portfela...";
-            try {
-                // Logowanie tylko przez E-mail, jak w instrukcji
-                const wallet = await sequenceWaaS.signIn({
-                    signInOptions: { appName: "Baltic Sands", email: true }
-                });
-                const address = await wallet.getAddress();
-                alert("Sukces! Twój portfel: " + address);
-            } catch (err) {
-                console.error(err);
-                // To wywoła się, jeśli domena nie jest zatwierdzona w Builderze
-                document.getElementById('status').innerHTML = "<span style='color:red'>Błąd! Sprawdź Allowed Origins w Builderze.</span>";
-            }
-        };
-    </script>
+        const connector = new SequenceConnect(config);
+
+        // Obsługa sukcesu połączenia
+        connector.on('connected', (data) => {
+            console.log('Połączono!', data);
+            document.getElementById('wallet-ui').classList.add('hidden');
+            document.getElementById('game-section').classList.remove('hidden');
+            document.getElementById('addr-display').innerText = "Portfel: " + data.address;
+        });
+
+        // Startujemy proces logowania inline
+        try {
+            await connector.connect();
+        } catch (err) {
+            console.error('Błąd Connect:', err);
+        }
+    }
+
+    window.onload = initConnect;
+
+    // Prosta gra
+    let count = 0;
+    document.body.addEventListener('click', (e) => {
+        if(e.target.innerText === '💎') {
+            count++;
+            document.getElementById('counter').innerText = count;
+        }
+    });
+</script>
+
 </body>
 </html>
