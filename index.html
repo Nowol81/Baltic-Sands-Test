@@ -10,53 +10,49 @@
         .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display: inline-block; }
         button { background-color: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
         .hidden { display: none; }
-        #amber-stone { font-size: 80px; cursor: pointer; margin: 20px; user-select: none; }
+        #status { margin-top: 15px; font-size: 14px; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Baltic Sands 🌊</h1>
-    <p>Wydobywaj bursztyn na sieci Soneium</p>
+    <p>Wydobywaj bursztyn na sieci Soneium Minato</p>
 
     <div id="login-section">
-        <button id="login-btn">ZALOGUJ PRZEZ E-MAIL</button>
+        <button id="login-btn">ZALOGUJ SIĘ I GRAJ</button>
         <p id="status">Zaloguj się, aby zacząć wydobycie</p>
     </div>
 
     <div id="game-section" class="hidden">
-        <div id="amber-stone">💎</div>
-        <h2>Bursztyn: <span id="counter">0</span></h2>
-        <p><small>Portfel: <span id="wallet-addr">...</span></small></p>
+        <h2>Twój Bursztyn: <span id="counter">0</span></h2>
+        <div id="amber-stone" style="font-size: 80px; cursor: pointer;">💎</div>
+        <p><small>Adres portfela: <span id="wallet-addr">...</span></small></p>
     </div>
 </div>
 
 <script>
-    // DOKŁADNE DANE Z TWOJEJ ZAKŁADKI INTEGRATION
+    // --- DANE DOKŁADNIE TAKIE JAK W TWOIM BUILDERZE ---
     const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
     const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
     let seq;
 
+    // To jest odpowiednik funkcji createConfig z Twojego screena
     window.onload = async () => {
-        // Inicjalizacja odpowiednika "createConfig" z Twojego screena
         seq = new window.sequence.waas.SequenceWaaS({
             projectAccessKey: projectAccessKey,
             waasConfigKey: waasConfigKey,
-            network: 'soneium-minato' // ID 1946
+            network: 'soneium-minato' // Sieć o ID 1946
         });
     };
 
     document.getElementById('login-btn').addEventListener('click', async () => {
         const status = document.getElementById('status');
-        status.innerText = "Inicjowanie połączenia...";
-
         try {
-            // To wywołanie zastępuje skomplikowany kod Reactowy z Twojego screena
+            // Logowanie e-mail
             const wallet = await seq.signIn({
-                signInOptions: {
-                    appName: "Baltic Sands"
-                }
+                signInOptions: { appName: "Baltic Sands" }
             });
 
             const address = await wallet.getAddress();
@@ -66,14 +62,13 @@
 
         } catch (err) {
             console.error(err);
-            status.innerText = "Błąd: " + err.message;
-            alert("Sprawdź, czy w sekcji Configuration dodałeś: https://nowol81.github.io");
+            // Ten błąd wyskakuje, gdy domena nie jest dodana w Builderze
+            status.innerHTML = "<span style='color:red;'>Błąd! Sprawdź Allowed Origins w Builderze.</span>";
         }
     });
 
-    // Prosta mechanika gry
     let count = 0;
-    document.getElementById('amber-stone').addEventListener('click', () => {
+    document.getElementById('amber-stone')?.addEventListener('click', () => {
         count++;
         document.getElementById('counter').innerText = count;
     });
