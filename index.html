@@ -32,29 +32,34 @@
 </div>
 
 <script>
-    // DANE DOKŁADNIE Z TWOICH SCREENÓW
+    // DANE Z TWOJEJ ZAKŁADKI INTEGRATION
     const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
     const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
     let seq;
 
     window.onload = () => {
-        // Inicjalizacja portfela
+        // Inicjalizacja z numerem sieci 1946 (Soneium Minato)
         seq = new window.sequence.waas.SequenceWaaS({
             projectAccessKey: projectAccessKey,
             waasConfigKey: waasConfigKey,
-            network: 'soneium-minato' // Sieć o ID 1946
+            network: 1946 
         });
     };
 
     document.getElementById('login-btn').addEventListener('click', async () => {
         const status = document.getElementById('status');
-        status.innerText = "Inicjowanie...";
+        status.innerText = "Inicjowanie połączenia...";
 
         try {
-            // Logowanie e-mail
+            // Logowanie z Twoją zmianą - tylko e-mail
             const wallet = await seq.signIn({
-                signInOptions: { appName: "Baltic Sands" }
+                signInOptions: { 
+                    appName: "Baltic Sands",
+                    email: true,
+                    google: false,
+                    apple: false
+                }
             });
 
             const address = await wallet.getAddress();
@@ -63,18 +68,5 @@
             document.getElementById('game-section').classList.remove('hidden');
 
         } catch (err) {
-            console.error(err);
-            // Wyświetlenie błędu, który widzisz na screenie
+            console.error("Szczegóły błędu:", err);
             status.innerHTML = "<span style='color:red;'>Błąd! Sprawdź Allowed Origins w Builderze.</span>";
-        }
-    });
-
-    let count = 0;
-    document.getElementById('amber-stone').addEventListener('click', () => {
-        count++;
-        document.getElementById('counter').innerText = count;
-    });
-</script>
-
-</body>
-</html>
