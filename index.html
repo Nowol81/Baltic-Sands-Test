@@ -3,64 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>Baltic Sands - Soneium</title>
-    <script src="https://unpkg.com/@0xsequence/waas@latest/dist/waas.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@0xsequence/waas@latest/dist/waas.umd.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f2f5; padding-top: 50px; }
-        .card { background: white; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        button { background: #7c3aed; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #ccc; }
+        body { font-family: sans-serif; text-align: center; background: #f4f7f6; padding-top: 50px; }
+        .card { background: white; padding: 30px; border-radius: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 320px; }
+        button { background: #7c3aed; color: white; border: none; padding: 15px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
+        button:disabled { background: #cbd5e1; cursor: not-allowed; }
+        #status { margin-top: 20px; font-size: 14px; color: #64748b; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>Baltic Sands 🌊</h1>
-        <button id="login-btn" disabled>INICJOWANIE...</button>
-        <p id="status">Czekam na Sequence SDK...</p>
+        <p>Mining on Soneium Minato</p>
+        <button id="login-btn" disabled>ŁADOWANIE...</button>
+        <div id="status">Sprawdzanie biblioteki...</div>
     </div>
 
     <script>
-        // Parametry z Twojej instrukcji
+        // Dane dokładnie z Twojego screena
         const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
         const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-        let waas;
+        let sequenceWaaS;
 
-        async function init() {
-            const status = document.getElementById('status');
-            const btn = document.getElementById('login-btn');
-
-            // Kluczowa zmiana: Sequence w wersji UMD wystawia się jako SequenceWaaS
+        // Czekamy, aż biblioteka pojawi się w oknie przeglądarki
+        const checkLibrary = setInterval(() => {
+            // W wersji UMD obiekt znajduje się tutaj:
             const SDK = window.SequenceWaaS ? window.SequenceWaaS.SequenceWaaS : null;
 
             if (SDK) {
-                waas = new SDK({
-                    projectAccessKey: projectAccessKey,
-                    waasConfigKey: waasConfigKey,
-                    network: 1946 // Soneium Minato z instrukcji
-                });
-                btn.disabled = false;
-                btn.innerText = "ZALOGUJ SIĘ";
-                status.innerText = "Gotowy do logowania ✅";
-            } else {
-                setTimeout(init, 1000); // Ponów jeśli jeszcze się nie załadowało
+                clearInterval(checkLibrary);
+                try {
+                    sequenceWaaS = new SDK({
+                        projectAccessKey: projectAccessKey,
+                        waasConfigKey: waasConfigKey,
+                        network: 1946 // Soneium Minato
+                    });
+                    
+                    document.getElementById('login-btn').disabled = false;
+                    document.getElementById('login-btn').innerText = "ZALOGUJ SIĘ I GRAJ";
+                    document.getElementById('status').innerText = "System gotowy ✅";
+                } catch (e) {
+                    document.getElementById('status').innerText = "Błąd startu: " + e.message;
+                }
             }
-        }
+        }, 1000);
 
-        document.getElementById('login-btn').addEventListener('click', async () => {
+        document.getElementById('login-btn').onclick = async () => {
+            document.getElementById('status').innerText = "Otwieranie portfela...";
             try {
-                // Logowanie e-mail - zgodnie z instrukcją
-                const wallet = await waas.signIn({
+                // Logowanie tylko przez E-mail, jak w instrukcji
+                const wallet = await sequenceWaaS.signIn({
                     signInOptions: { appName: "Baltic Sands", email: true }
                 });
-                const addr = await wallet.getAddress();
-                alert("Zalogowano! Twój adres: " + addr);
+                const address = await wallet.getAddress();
+                alert("Sukces! Twój portfel: " + address);
             } catch (err) {
                 console.error(err);
-                document.getElementById('status').innerHTML = "<b style='color:red'>Błąd! Kliknij UPDATE w Builderze.</b>";
+                // To wywoła się, jeśli domena nie jest zatwierdzona w Builderze
+                document.getElementById('status').innerHTML = "<span style='color:red'>Błąd! Sprawdź Allowed Origins w Builderze.</span>";
             }
-        });
-
-        init();
+        };
     </script>
 </body>
 </html>
