@@ -32,27 +32,41 @@
 </div>
 
 <script>
-    // DANE Z TWOJEJ ZAKŁADKI INTEGRATION
+    // TWOJE DANE Z INTEGRACJI
     const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
     const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
     let seq;
 
-    window.onload = () => {
-        // Inicjalizacja z numerem sieci 1946 (Soneium Minato)
-        seq = new window.sequence.waas.SequenceWaaS({
-            projectAccessKey: projectAccessKey,
-            waasConfigKey: waasConfigKey,
-            network: 1946 
-        });
+    // Funkcja inicjalizująca - naprawia błąd z Twojego screena
+    window.onload = function() {
+        try {
+            // Sprawdzamy czy biblioteka jest dostępna pod poprawną nazwą
+            const SequenceWaaS = window.sequence.waas.SequenceWaaS;
+            
+            seq = new SequenceWaaS({
+                projectAccessKey: projectAccessKey,
+                waasConfigKey: waasConfigKey,
+                network: 1946 // Soneium Minato
+            });
+            console.log("Sequence SDK załadowane poprawnie.");
+        } catch (err) {
+            console.error("Błąd ładowania SDK:", err);
+            document.getElementById('status').innerText = "Błąd techniczny ładowania portfela.";
+        }
     };
 
     document.getElementById('login-btn').addEventListener('click', async () => {
         const status = document.getElementById('status');
+        if (!seq) {
+            status.innerText = "Portfel nie jest gotowy. Odśwież stronę.";
+            return;
+        }
+
         status.innerText = "Inicjowanie połączenia...";
 
         try {
-            // Logowanie z Twoją zmianą - tylko e-mail
+            // Logowanie e-mail
             const wallet = await seq.signIn({
                 signInOptions: { 
                     appName: "Baltic Sands",
@@ -68,5 +82,18 @@
             document.getElementById('game-section').classList.remove('hidden');
 
         } catch (err) {
-            console.error("Szczegóły błędu:", err);
+            console.error("Szczegóły błędu logowania:", err);
+            // Wyświetla błąd, jeśli zapomniałeś kliknąć "Update Configuration"
             status.innerHTML = "<span style='color:red;'>Błąd! Sprawdź Allowed Origins w Builderze.</span>";
+        }
+    });
+
+    let count = 0;
+    document.getElementById('amber-stone')?.addEventListener('click', () => {
+        count++;
+        document.getElementById('counter').innerText = count;
+    });
+</script>
+
+</body>
+</html>
