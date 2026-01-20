@@ -7,63 +7,57 @@
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
         .card { background: #1e293b; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        button { background: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        #status { margin-top: 20px; color: #94a3b8; font-size: 13px; }
+        button { background: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        button:disabled { background: #475569; }
+        #debug { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 20px; text-align: left; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Baltic Sands 🌊</h1>
-    <button id="login-btn">ZALOGUJ SIĘ I GRAJ</button>
-    <p id="status">Gotowy do startu...</p>
+    <button id="login-btn">ZALOGUJ SIĘ</button>
+    <div id="debug">Log: Czekam na start...</div>
 </div>
 
 <script>
-    // TWOJE NOWE KLUCZE Z "Sequence.js"
-    const PROJECT_ACCESS_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
-    const WAAS_CONFIG_KEY = "eyJ3cm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
+    const log = (m) => { document.getElementById('debug').innerHTML += "<br>> " + m; };
+    
+    // Klucze pobrane bezpośrednio z Twojego ekranu Sequence.js
+    const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+    const W_KEY = "eyJ3cm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-    const btn = document.getElementById('login-btn');
-    const status = document.getElementById('status');
+    window.onload = () => {
+        log("Strona załadowana.");
+        // Sprawdzamy czy biblioteka unpkg w ogóle istnieje w oknie
+        if (window.sequenceWaas) {
+            log("Biblioteka SequenceWaas znaleziona ✅");
+        } else {
+            log("BŁĄD: Biblioteka waas.umd.js nie załadowała się! Sprawdź połączenie.");
+        }
+    };
 
-    btn.onclick = async () => {
-        status.innerText = "Inicjowanie Sequence WaaS...";
-        btn.disabled = true;
-
+    document.getElementById('login-btn').onclick = async () => {
+        log("Inicjowanie Sequence...");
         try {
-            // Sprawdzenie czy biblioteka się załadowała
-            if (!window.sequenceWaas) {
-                throw new Error("Biblioteka JS nie załadowała się z serwera.");
-            }
-
-            // Inicjalizacja instancji WaaS pod Soneium Minato
-            const waas = new sequenceWaas.SequenceWaaS({
-                projectAccessKey: PROJECT_ACCESS_KEY,
-                waasConfigKey: WAAS_CONFIG_KEY,
-                network: 'soneium-minato'
+            const waas = new window.sequenceWaas.SequenceWaaS({
+                projectAccessKey: P_KEY,
+                waasConfigKey: W_KEY,
+                network: 'soneium-minato' // Zgodnie z image_d7dc42.png
             });
 
-            status.innerText = "Oczekiwanie na logowanie e-mail...";
+            log("Otwieranie okna logowania...");
+            const result = await waas.signIn({ projectName: "Baltic Sands" }, "session-1");
             
-            // Wywołanie logowania - otworzy okno pop-up
-            const result = await waas.signIn({
-                projectName: "Baltic Sands"
-            }, "session-baltic-sands");
-
-            status.innerText = "ZALOGOWANO! Adres: " + result.walletAddress;
-            btn.innerText = "GRA ZACZĘTA";
-            console.log("Adres portfela:", result.walletAddress);
-
+            if (result.walletAddress) {
+                log("SUKCES! Adres: " + result.walletAddress);
+                alert("Zalogowano: " + result.walletAddress);
+            }
         } catch (err) {
+            log("BŁĄD: " + err.message);
             console.error(err);
-            status.innerText = "BŁĄD: " + err.message;
-            btn.disabled = false;
-            btn.innerText = "SPRÓBUJ PONOWNIE";
         }
     };
 </script>
-
 </body>
 </html>
