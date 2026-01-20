@@ -2,83 +2,47 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baltic Hello - Soneium</title>
-    
-    <script src="https://unpkg.com/@0xsequence/connect@0.4.0/dist/sequence-connect.umd.js"></script>
-
+    <title>Baltic Sands - Soneium</title>
+    <script src="https://unpkg.com/0xsequence@0.12.8/dist/0xsequence.umd.min.js"></script>
     <style>
-        body { background-color: black; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .card { background: #111; padding: 40px; border-radius: 20px; border: 1px solid #333; text-align: center; width: 320px; }
-        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background: #7c3aed; color: white; border: none; border-radius: 10px; width: 100%; font-weight: bold; }
-        button:disabled { background: #222; color: #444; cursor: not-allowed; }
-        #hello-text { display: none; font-size: 32px; font-weight: bold; }
-        .status { margin-top: 20px; color: #555; font-size: 11px; font-family: monospace; }
-        #user-addr { font-size: 12px; color: #38bdf8; margin-top: 10px; word-break: break-all; }
+        body { background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .card { background: #111; padding: 40px; border-radius: 20px; border: 1px solid #333; text-align: center; }
+        button { padding: 15px 30px; background: #7c3aed; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <div class="card">
-        <div id="login-section">
-            <h2 style="margin-top: 0; color: #7c3aed;">Baltic Hello</h2>
-            <button id="login-btn" disabled>ŁADOWANIE...</button>
-            <p class="status" id="status-msg">Łączenie z serwerem Sequence...</p>
-        </div>
-
-        <div id="hello-text">
-            HALLO! 🌊
-            <p id="user-addr"></p>
-        </div>
+        <h2>Baltic Hello</h2>
+        <button id="login-btn">ZALOGUJ SIĘ</button>
+        <p id="status" style="color: #555; font-size: 12px; margin-top: 20px;">Czekam na akcję...</p>
     </div>
 
     <script>
         // Twój klucz z projektu
-        const MOJ_KLUCZ = "AQAAAAAAALixXs_bnQPP5Tj19vzHiDHweJ4";
+        const projectAccessKey = "AQAAAAAAALixXs_bnQPP5Tj19vzHiDHweJ4";
 
-        function initApp() {
-            const status = document.getElementById('status-msg');
-            const btn = document.getElementById('login-btn');
-
-            if (!window.sequenceConnect) {
-                status.innerText = "Błąd: Nie znaleziono biblioteki pod adresem unpkg.";
-                return;
-            }
+        document.getElementById('login-btn').onclick = async () => {
+            const status = document.getElementById('status');
+            status.innerText = "Otwieranie portfela...";
 
             try {
-                const { createConfig, SequenceConnect } = window.sequenceConnect;
-                const config = createConfig('waas', {
-                    projectAccessKey: MOJ_KLUCZ,
-                    defaultChainId: 1946,
-                    appName: "Baltic Hello"
+                // Inicjalizacja portfela Sequence
+                const wallet = sequence.initWallet(projectAccessKey, { network: 'soneium-minato' });
+                
+                const connectDetails = await wallet.connect({
+                    app: 'Baltic Sands',
+                    authorize: true
                 });
 
-                const connector = new SequenceConnect(config);
-                
-                status.innerText = "Połączono z serwerem ✅";
-                btn.disabled = false;
-                btn.innerText = "ZALOGUJ SIĘ";
-
-                btn.onclick = async () => {
-                    status.innerText = "Inicjowanie portfela...";
-                    try {
-                        const wallet = await connector.connect({ authorize: true });
-                        if (wallet.connected) {
-                            document.getElementById('login-section').style.display = 'none';
-                            document.getElementById('hello-text').style.display = 'block';
-                            document.getElementById('user-addr').innerText = wallet.session.accountAddress;
-                        }
-                    } catch (err) {
-                        status.innerText = "Błąd logowania: " + err.message;
-                    }
-                };
-            } catch (e) {
-                status.innerText = "Błąd startu: " + e.message;
+                if (connectDetails.connected) {
+                    status.innerText = "Połączono! Adres: " + connectDetails.session.accountAddress;
+                    status.style.color = "#38bdf8";
+                }
+            } catch (err) {
+                status.innerText = "Błąd: " + err.message;
+                console.error(err);
             }
-        }
-
-        // Czekamy chwilę na załadowanie skryptu z sieci
-        setTimeout(initApp, 1000);
+        };
     </script>
 </body>
 </html>
