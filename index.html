@@ -9,55 +9,68 @@
         .card { background: #1e293b; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         button { background: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; }
         button:disabled { background: #475569; }
-        #debug { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 20px; text-align: left; border-radius: 5px; }
+        #debug { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 20px; text-align: left; border-radius: 5px; max-height: 100px; overflow: auto; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Baltic Sands 🌊</h1>
-    <button id="login-btn">ZALOGUJ SIĘ</button>
-    <div id="debug">Log: Czekam na start...</div>
+    <p>Mining on Soneium Minato</p>
+    <button id="login-btn" disabled>CZEKAJ...</button>
+    <div id="debug">Inicjowanie...</div>
 </div>
 
 <script>
-    const log = (m) => { document.getElementById('debug').innerHTML += "<br>> " + m; };
+    const log = (m) => { document.getElementById('debug').innerText = m; };
     
-    // Klucze pobrane bezpośrednio z Twojego ekranu Sequence.js
+    // TWOJE NOWE KLUCZE Z EKRANU SEQUENCE.JS
     const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
     const W_KEY = "eyJ3cm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-    window.onload = () => {
-        log("Strona załadowana.");
-        // Sprawdzamy czy biblioteka unpkg w ogóle istnieje w oknie
-        if (window.sequenceWaas) {
-            log("Biblioteka SequenceWaas znaleziona ✅");
-        } else {
-            log("BŁĄD: Biblioteka waas.umd.js nie załadowała się! Sprawdź połączenie.");
-        }
-    };
+    let waas;
 
-    document.getElementById('login-btn').onclick = async () => {
-        log("Inicjowanie Sequence...");
+    async function start() {
+        // Sprawdzamy czy nowa biblioteka Waas jest dostępna
+        if (!window.sequenceWaas) {
+            log("BŁĄD: Biblioteka nie załadowana. Sprawdź internet.");
+            return;
+        }
+
         try {
-            const waas = new window.sequenceWaas.SequenceWaaS({
+            // Inicjalizacja zgodnie z Twoim nowym wyborem SDK
+            waas = new window.sequenceWaas.SequenceWaaS({
                 projectAccessKey: P_KEY,
                 waasConfigKey: W_KEY,
-                network: 'soneium-minato' // Zgodnie z image_d7dc42.png
+                network: 'soneium-minato'
             });
 
-            log("Otwieranie okna logowania...");
-            const result = await waas.signIn({ projectName: "Baltic Sands" }, "session-1");
+            document.getElementById('login-btn').disabled = false;
+            document.getElementById('login-btn').innerText = "ZALOGUJ SIĘ";
+            log("Gotowy ✅");
+        } catch (e) {
+            log("Błąd startu: " + e.message);
+        }
+    }
+
+    document.getElementById('login-btn').onclick = async () => {
+        log("Otwieranie logowania...");
+        try {
+            // Metoda signIn z Twojej nowej platformy
+            const result = await waas.signIn({
+                projectName: "Baltic Sands"
+            }, "session-baltic-sands");
             
             if (result.walletAddress) {
-                log("SUKCES! Adres: " + result.walletAddress);
-                alert("Zalogowano: " + result.walletAddress);
+                log("ZALOGOWANO! Adres: " + result.walletAddress);
+                alert("Sukces! Twój portfel: " + result.walletAddress);
             }
         } catch (err) {
-            log("BŁĄD: " + err.message);
-            console.error(err);
+            log("Błąd: " + err.message);
         }
     };
+
+    window.onload = start;
 </script>
 </body>
 </html>
