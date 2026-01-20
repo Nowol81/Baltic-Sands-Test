@@ -3,49 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baltic Sands - Mining Game</title>
+    <title>Baltic Sands - Soneium Mining</title>
     <script src="https://nodes.sequence.app/umd/sequence.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0f4f8; color: #333; padding-top: 50px; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; min-width: 300px; }
-        #amber-stone { font-size: 80px; cursor: pointer; transition: transform 0.1s; user-select: none; }
-        #amber-stone:active { transform: scale(0.9); }
+        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background-color: #eef2f7; color: #2d3436; padding-top: 50px; }
+        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: inline-block; min-width: 350px; }
+        #amber-stone { font-size: 100px; cursor: pointer; transition: transform 0.1s; user-select: none; margin: 20px 0; }
+        #amber-stone:active { transform: scale(0.95); }
         .hidden { display: none; }
-        button { background-color: #6c5ce7; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background-color: #a29bfe; }
-        #status { margin-top: 15px; font-weight: bold; color: #666; }
+        button { background-color: #6c5ce7; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; }
+        button:hover { background-color: #5649c0; transform: translateY(-2px); }
+        #status { margin-top: 20px; color: #636e72; font-size: 14px; }
+        .stats { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Baltic Sands 🌊</h1>
-    <p>Wydobywaj bursztyn na sieci Soneium</p>
+    <p>Wydobywaj Bursztyn na Soneium Minato</p>
 
     <div id="login-section">
-        <button id="login-btn">ZALOGUJ PRZEZ E-MAIL</button>
-        <p id="status">Zaloguj się, aby zacząć wydobycie</p>
+        <button id="login-btn">ZALOGUJ SIĘ I GRAJ</button>
+        <p id="status">Wymagane połączenie z portfelem Sequence</p>
     </div>
 
     <div id="game-section" class="hidden">
         <div id="amber-stone">💎</div>
-        <h2>Twój Bursztyn: <span id="counter">0</span></h2>
-        <p>Klikaj w bursztyn, aby zbierać punkty!</p>
-        <p><small>Adres portfela: <span id="wallet-addr">...</span></small></p>
+        <div class="stats">
+            <h2>Bursztyn: <span id="counter">0</span></h2>
+            <p><small>Portfel: <span id="wallet-addr">...</span></small></p>
+        </div>
+        <p>Klikaj w diament, aby zbierać punkty!</p>
     </div>
 </div>
 
 <script>
-    // --- KONFIGURACJA Z TWOJEGO SEQUENCE BUILDERA ---
-    // PAMIĘTAJ: Wklej oba klucze dokładnie w te miejsca:
+    // --- TWOJA KONFIGURACJA Z ZAKŁADKI INTEGRATION ---
     const PROJECT_ACCESS_KEY = 'AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44'; 
-    const WAAS_CONFIG_KEY = 'AQAAAAAAALh5rxQ57EGIOirK4bNGjewaTUY';
+    const WAAS_CONFIG_KEY = 'eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=';
 
-    // Inicjalizacja Sequence zgodnie z dokumentacją Soneium Minato
+    // Inicjalizacja Sequence WaaS
     const sequence = new sequence.waas.SequenceWaaS({
         projectAccessKey: PROJECT_ACCESS_KEY,
         waasConfigKey: WAAS_CONFIG_KEY,
-        network: 'soneium-minato' // Sieć testowa Soneium
+        network: 'soneium-minato'
     });
 
     let count = 0;
@@ -57,40 +59,44 @@
     const walletAddrDisplay = document.getElementById('wallet-addr');
     const statusText = document.getElementById('status');
 
-    // Obsługa logowania
+    // Obsługa logowania e-mail
     loginBtn.addEventListener('click', async () => {
-        statusText.innerText = "Otwieram bezpieczne logowanie...";
+        statusText.innerText = "Łączenie z Soneium Minato...";
         try {
-            // Wywołanie portfela Embedded (WaaS)
+            // Logowanie - Sequence otworzy własne okno (Modal)
             const wallet = await sequence.signIn({
-                signInOptions: { appName: 'Baltic Sands Game' }
+                signInOptions: { 
+                    appName: 'Baltic Sands',
+                    // Wyłączamy zbędne opcje, zostawiamy czysty e-mail
+                    google: false,
+                    apple: false
+                }
             });
 
-            console.log('Zalogowano pomyślnie:', wallet);
             const address = await wallet.getAddress();
-            
-            // Przełączanie widoku po zalogowaniu
+            console.log('Połączono portfel:', address);
+
+            // Aktualizacja interfejsu
             walletAddrDisplay.innerText = address.substring(0,6) + "..." + address.substring(38);
             loginSection.classList.add('hidden');
             gameSection.classList.remove('hidden');
+            
         } catch (error) {
             console.error('Błąd logowania:', error);
-            statusText.innerText = "Błąd: " + error.message;
-            alert("Nie udało się zalogować. Sprawdź ustawienia Allowed Origins w Builderze!");
+            statusText.innerHTML = "<span style='color:red;'>Błąd logowania! Sprawdź Allowed Origins w Builderze.</span>";
         }
     });
 
-    // Mechanika klikania
+    // Mechanika gry
     amberStone.addEventListener('click', () => {
         count++;
         counterDisplay.innerText = count;
         
-        // Co 10 kliknięć informujemy o postępie (miejsce na Twój Smart Kontrakt)
+        // Co 10 kliknięć logujemy postęp
         if (count % 10 === 0) {
-            console.log("Osiągnięto próg 10 bursztynów. System gotowy do mintowania ATT.");
+            console.log("Gotowy do zapisu postępu na blockchainie Soneium...");
         }
     });
-
 </script>
 
 </body>
