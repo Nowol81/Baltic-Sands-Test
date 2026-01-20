@@ -6,100 +6,78 @@
     <title>Baltic Sands - Soneium Mining</title>
     <script src="https://nodes.sequence.app/umd/sequence.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background-color: #eef2f7; color: #2d3436; padding-top: 50px; }
-        .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: inline-block; min-width: 350px; }
-        #amber-stone { font-size: 100px; cursor: pointer; transition: transform 0.1s; user-select: none; margin: 20px 0; }
-        #amber-stone:active { transform: scale(0.95); }
+        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background-color: #f4f7f9; padding-top: 50px; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display: inline-block; }
+        button { background-color: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; }
         .hidden { display: none; }
-        button { background-color: #6c5ce7; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: #5649c0; transform: translateY(-2px); }
-        #status { margin-top: 20px; color: #636e72; font-size: 14px; }
-        .stats { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 20px; }
+        #amber-stone { font-size: 80px; cursor: pointer; margin: 20px; user-select: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="card">
     <h1>Baltic Sands 🌊</h1>
-    <p>Wydobywaj Bursztyn na Soneium Minato</p>
+    <p>Wydobywaj bursztyn na sieci Soneium</p>
 
     <div id="login-section">
-        <button id="login-btn">ZALOGUJ SIĘ I GRAJ</button>
-        <p id="status">Wymagane połączenie z portfelem Sequence</p>
+        <button id="login-btn">ZALOGUJ PRZEZ E-MAIL</button>
+        <p id="status">Zaloguj się, aby zacząć wydobycie</p>
     </div>
 
     <div id="game-section" class="hidden">
         <div id="amber-stone">💎</div>
-        <div class="stats">
-            <h2>Bursztyn: <span id="counter">0</span></h2>
-            <p><small>Portfel: <span id="wallet-addr">...</span></small></p>
-        </div>
-        <p>Klikaj w bursztyn, aby zbierać punkty!</p>
+        <h2>Bursztyn: <span id="counter">0</span></h2>
+        <p><small>Portfel: <span id="wallet-addr">...</span></small></p>
     </div>
 </div>
 
 <script>
-    // Dane z Twojej zakładki Integration
-    const P_ACCESS_KEY = 'AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44'; 
-    const W_CONFIG_KEY = 'eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=';
+    // DOKŁADNE DANE Z TWOJEJ ZAKŁADKI INTEGRATION
+    const projectAccessKey = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+    const waasConfigKey = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-    let seqWallet;
+    let seq;
 
-    // Inicjalizacja po załadowaniu strony
-    window.onload = () => {
-        try {
-            // Tworzymy instancję SequenceWaaS korzystając z załadowanej biblioteki window.sequence
-            seqWallet = new window.sequence.waas.SequenceWaaS({
-                projectAccessKey: P_ACCESS_KEY,
-                waasConfigKey: W_CONFIG_KEY,
-                network: '1946'
-            });
-            console.log("Sequence SDK zainicjowane.");
-        } catch (err) {
-            console.error("Błąd inicjalizacji SDK:", err);
-        }
+    window.onload = async () => {
+        // Inicjalizacja odpowiednika "createConfig" z Twojego screena
+        seq = new window.sequence.waas.SequenceWaaS({
+            projectAccessKey: projectAccessKey,
+            waasConfigKey: waasConfigKey,
+            network: 'soneium-minato' // ID 1946
+        });
     };
 
-    let count = 0;
-    const loginBtn = document.getElementById('login-btn');
-    const loginSection = document.getElementById('login-section');
-    const gameSection = document.getElementById('game-section');
-    const counterDisplay = document.getElementById('counter');
-    const amberStone = document.getElementById('amber-stone');
-    const walletAddrDisplay = document.getElementById('wallet-addr');
-    const statusText = document.getElementById('status');
+    document.getElementById('login-btn').addEventListener('click', async () => {
+        const status = document.getElementById('status');
+        status.innerText = "Inicjowanie połączenia...";
 
-    loginBtn.addEventListener('click', async () => {
-        statusText.innerText = "Łączenie z portfelem...";
-        
         try {
-            // Próba logowania
-            const auth = await seqWallet.signIn({
-                signInOptions: { 
-                    appName: 'Baltic Sands'
+            // To wywołanie zastępuje skomplikowany kod Reactowy z Twojego screena
+            const wallet = await seq.signIn({
+                signInOptions: {
+                    appName: "Baltic Sands"
                 }
             });
 
-            console.log('Autoryzacja udana:', auth);
-            const address = await auth.wallet.getAddress();
-            
-            // Pokazujemy grę
-            walletAddrDisplay.innerText = address.substring(0,6) + "..." + address.substring(38);
-            loginSection.classList.add('hidden');
-            gameSection.classList.remove('hidden');
-            
-        } catch (error) {
-            console.error('Błąd podczas logowania:', error);
-            statusText.innerHTML = "<span style='color:red;'>Błąd: Sprawdź konsolę (F12) lub ustawienia Allowed Origins.</span>";
+            const address = await wallet.getAddress();
+            document.getElementById('wallet-addr').innerText = address;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('game-section').classList.remove('hidden');
+
+        } catch (err) {
+            console.error(err);
+            status.innerText = "Błąd: " + err.message;
+            alert("Sprawdź, czy w sekcji Configuration dodałeś: https://nowol81.github.io");
         }
     });
 
-    amberStone.addEventListener('click', () => {
+    // Prosta mechanika gry
+    let count = 0;
+    document.getElementById('amber-stone').addEventListener('click', () => {
         count++;
-        counterDisplay.innerText = count;
+        document.getElementById('counter').innerText = count;
     });
 </script>
 
 </body>
 </html>
-
