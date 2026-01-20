@@ -19,53 +19,12 @@
             height: 100vh; 
             margin: 0; 
         }
-        button { 
-            padding: 15px 30px; 
-            font-size: 18px; 
-            cursor: pointer; 
-            background: #7c3aed; 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-        }
-        #hello-text { display: none; font-size: 48px; font-weight: bold; }
-        .status { margin-top: 10px; color: #666; font-size: 12px; }
-    </style>
-</head>
-<body>
-
-    <div id="login-section">
-        <button id="login-btn">Zaloguj się do Soneium</button>
-        <p class="status" id="status-msg">Czekam na start...</p>
-    </div>
-
-    <div id="hello-text">
-        HALLO! 🌊
-        <p style="font-size: 16px; color: #38bdf8;" id="user-addr"></p>
-    </div>
-
-    <script>
-        // TUTAJ WKLEJ SWÓJ NOWY KLUCZ Z NOWEGO PROJEKTU
-        const MOJ_KLUCZ = "<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Soneium</title>
-    
-    <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
-
-    <style>
-        body { 
-            background-color: black; 
-            color: white; 
-            font-family: sans-serif; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
+        .card {
+            background: #111;
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            text-align: center;
         }
         button { 
             padding: 15px 30px; 
@@ -74,105 +33,82 @@
             background: #7c3aed; 
             color: white; 
             border: none; 
-            border-radius: 10px; 
+            border-radius: 10px;
+            transition: 0.3s;
         }
-        #hello-text { display: none; font-size: 48px; font-weight: bold; }
-        .status { margin-top: 10px; color: #666; font-size: 12px; }
+        button:hover { background: #6d28d9; }
+        button:disabled { background: #333; cursor: not-allowed; }
+        #hello-text { display: none; font-size: 48px; font-weight: bold; color: #fff; }
+        .status { margin-top: 20px; color: #666; font-size: 13px; font-family: monospace; }
+        #user-addr { font-size: 14px; color: #38bdf8; margin-top: 10px; word-break: break-all; }
     </style>
 </head>
 <body>
 
-    <div id="login-section">
-        <button id="login-btn">Zaloguj się do Soneium</button>
-        <p class="status" id="status-msg">Czekam na start...</p>
-    </div>
+    <div class="card">
+        <div id="login-section">
+            <h2 style="margin-top: 0;">Baltic Hello</h2>
+            <button id="login-btn" disabled>ŁADOWANIE...</button>
+            <p class="status" id="status-msg">Inicjowanie silnika...</p>
+        </div>
 
-    <div id="hello-text">
-        HALLO! 🌊
-        <p style="font-size: 16px; color: #38bdf8;" id="user-addr"></p>
+        <div id="hello-text">
+            HALLO! 🌊
+            <p id="user-addr"></p>
+        </div>
     </div>
 
     <script>
-        // TUTAJ WKLEJ SWÓJ NOWY KLUCZ Z NOWEGO PROJEKTU
-        const MOJ_KLUCZ = "TUTAJ_WKLEJ_TWOJ_NOWY_PROJECT_ACCESS_KEY";
+        // TWÓJ KLUCZ ZOSTAŁ WKLEJONY PONIŻEJ
+        const MOJ_KLUCZ = "AQAAAAAAALixXs_bnQPP5Tj19vzHiDHweJ4";
 
         async function init() {
             const status = document.getElementById('status-msg');
+            const btn = document.getElementById('login-btn');
             
-            // Sprawdzamy czy biblioteka dojechała
+            // Sprawdzamy czy biblioteka dotarła z serwera
             if (!window.sequenceConnect) {
-                status.innerText = "Ładowanie silnika... (odśwież jeśli trwa to długo)";
+                status.innerText = "Szukam narzędzi Sequence...";
                 setTimeout(init, 1000);
                 return;
             }
             
-            status.innerText = "Silnik gotowy ✅";
-            const { createConfig, SequenceConnect } = window.sequenceConnect;
+            try {
+                const { createConfig, SequenceConnect } = window.sequenceConnect;
 
-            const config = createConfig('waas', {
-                projectAccessKey: MOJ_KLUCZ,
-                defaultChainId: 1946, // Soneium Minato
-                appName: "Baltic Hello"
-            });
+                const config = createConfig('waas', {
+                    projectAccessKey: MOJ_KLUCZ,
+                    defaultChainId: 1946, // Soneium Minato
+                    appName: "Baltic Hello"
+                });
 
-            const connector = new SequenceConnect(config);
+                const connector = new SequenceConnect(config);
+                
+                status.innerText = "System gotowy ✅";
+                btn.disabled = false;
+                btn.innerText = "ZALOGUJ SIĘ";
 
-            document.getElementById('login-btn').onclick = async () => {
-                status.innerText = "Otwieranie bramy...";
-                try {
-                    const wallet = await connector.connect();
-                    if (wallet.connected) {
-                        document.getElementById('login-section').style.display = 'none';
-                        document.getElementById('hello-text').style.display = 'block';
-                        document.getElementById('user-addr').innerText = "Twój portfel: " + wallet.session.accountAddress;
+                btn.onclick = async () => {
+                    status.innerText = "Otwieranie okna logowania...";
+                    try {
+                        const wallet = await connector.connect({
+                            authorize: true,
+                            appName: "Baltic Hello"
+                        });
+
+                        if (wallet.connected) {
+                            document.getElementById('login-section').style.display = 'none';
+                            document.getElementById('hello-text').style.display = 'block';
+                            document.getElementById('user-addr').innerText = "Adres: " + wallet.session.accountAddress;
+                        }
+                    } catch (err) {
+                        status.innerText = "Błąd: " + err.message;
+                        console.error(err);
                     }
-                } catch (err) {
-                    status.innerText = "Błąd: " + err.message;
-                    console.error(err);
-                }
-            };
-        }
-
-        window.onload = init;
-    </script>
-</body>
-</html>";
-
-        async function init() {
-            const status = document.getElementById('status-msg');
-            
-            // Sprawdzamy czy biblioteka dojechała
-            if (!window.sequenceConnect) {
-                status.innerText = "Ładowanie silnika... (odśwież jeśli trwa to długo)";
-                setTimeout(init, 1000);
-                return;
+                };
+            } catch (e) {
+                status.innerText = "Błąd konfiguracji: " + e.message;
             }
-            
-            status.innerText = "Silnik gotowy ✅";
-            const { createConfig, SequenceConnect } = window.sequenceConnect;
-
-            const config = createConfig('waas', {
-                projectAccessKey: MOJ_KLUCZ,
-                defaultChainId: 1946, // Soneium Minato
-                appName: "Baltic Hello"
-            });
-
-            const connector = new SequenceConnect(config);
-
-            document.getElementById('login-btn').onclick = async () => {
-                status.innerText = "Otwieranie bramy...";
-                try {
-                    const wallet = await connector.connect();
-                    if (wallet.connected) {
-                        document.getElementById('login-section').style.display = 'none';
-                        document.getElementById('hello-text').style.display = 'block';
-                        document.getElementById('user-addr').innerText = "Twój portfel: " + wallet.session.accountAddress;
-                    }
-                } catch (err) {
-                    status.innerText = "Błąd: " + err.message;
-                    console.error(err);
-                }
-            };
         }
 
         window.onload = init;
