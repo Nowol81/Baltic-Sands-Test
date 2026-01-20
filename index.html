@@ -2,32 +2,39 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Baltic Sands - Soneium Connect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baltic Sands - Soneium</title>
     <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding-top: 50px; }
-        .card { background: #1e293b; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #login-btn { background: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; }
-        #login-btn:disabled { background: #475569; cursor: not-allowed; }
-        #status { margin-top: 20px; color: #94a3b8; }
+        body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding-top: 100px; margin: 0; }
+        .card { max-width: 400px; margin: auto; background: #1e293b; padding: 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        h1 { font-size: 28px; margin-bottom: 10px; }
+        button { background: #7c3aed; color: white; border: none; padding: 18px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; width: 100%; transition: 0.2s; }
+        button:hover { background: #8b5cf6; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        #status { margin-top: 20px; color: #94a3b8; font-size: 14px; }
         .hidden { display: none; }
+        #amber { font-size: 100px; cursor: pointer; user-select: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>Baltic Sands 🌊</h1>
+    <p style="color: #94a3b8; margin-bottom: 30px;">Mining on Soneium Minato</p>
+    
     <button id="login-btn" disabled>ŁADOWANIE...</button>
-    <p id="status">Inicjowanie Sequence Connect...</p>
+    <p id="status">Czekam na bibliotekę...</p>
 
-    <div id="game-section" class="hidden">
-        <div style="font-size: 80px; cursor: pointer;">💎</div>
-        <h2>Bursztyn: <span id="counter">0</span></h2>
-        <p id="wallet-addr"></p>
+    <div id="game" class="hidden">
+        <div id="amber">💎</div>
+        <h2>Bursztyn: <span id="count">0</span></h2>
+        <p id="addr" style="color: #38bdf8; font-size: 12px;"></p>
     </div>
 </div>
 
 <script>
+    // Klucze z Twojego Playground
     const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
     const W_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
@@ -47,43 +54,42 @@
             defaultChainId: 1946,
             appName: "Baltic Sands",
             email: true,
-            // WYŁĄCZAMY RENDER INLINE - to kluczowe
-            renderInline: false, 
+            renderInline: false, // KLUCZOWA ZMIANA: Wyłączamy inline, by uniknąć pustego pola
             defaultTheme: "dark"
         });
 
         connector = new SequenceConnect(config);
         
-        const btn = document.getElementById('login-btn');
-        btn.disabled = false;
-        btn.innerText = "ZALOGUJ SIĘ I GRAJ";
-        document.getElementById('status').innerText = "System gotowy ✅";
+        document.getElementById('login-btn').disabled = false;
+        document.getElementById('login-btn').innerText = "ZALOGUJ SIĘ I GRAJ";
+        document.getElementById('status').innerText = "Połączenie gotowe ✅";
     }
 
     document.getElementById('login-btn').onclick = async () => {
+        document.getElementById('status').innerText = "Otwieranie okna logowania...";
         try {
-            const data = await connector.connect({ appName: "Baltic Sands" });
+            // To otworzy bezpieczne okno pop-up
+            const response = await connector.connect({ appName: "Baltic Sands" });
             
-            if (data.connected) {
+            if (response.connected) {
                 document.getElementById('login-btn').classList.add('hidden');
                 document.getElementById('status').classList.add('hidden');
-                document.getElementById('game-section').classList.remove('hidden');
-                document.getElementById('wallet-addr').innerText = "Portfel: " + data.session.accountAddress;
+                document.getElementById('game').classList.remove('hidden');
+                document.getElementById('addr').innerText = response.session.accountAddress;
             }
         } catch (err) {
             console.error(err);
-            alert("Błąd połączenia: " + err.message);
+            alert("Błąd: " + err.message + ". Sprawdź czy zablokowałeś wyskakujące okienka!");
+            document.getElementById('status').innerText = "Błąd połączenia. Odśwież stronę.";
         }
     };
 
-    // Gra
-    let count = 0;
-    document.body.addEventListener('click', (e) => {
-        if(e.target.innerText === '💎') {
-            count++;
-            document.getElementById('counter').innerText = count;
-        }
-    });
+    // Mechanika gry
+    let score = 0;
+    document.getElementById('amber').onclick = () => {
+        score++;
+        document.getElementById('count').innerText = score;
+    };
 
     window.onload = init;
 </script>
