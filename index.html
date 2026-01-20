@@ -2,52 +2,91 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baltic Sands - Soneium Connect</title>
-    
     <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
-    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: white; text-align: center; padding-top: 50px; margin: 0; }
-        .container { max-width: 420px; margin: auto; background: #1e293b; padding: 30px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        h1 { margin-top: 0; color: #f8fafc; font-size: 28px; }
-        #wallet-ui { min-height: 450px; margin-top: 20px; border-radius: 16px; background: #0f172a; overflow: hidden; }
+        body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding-top: 50px; }
+        .card { background: #1e293b; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #login-btn { background: #7c3aed; color: white; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        #login-btn:disabled { background: #475569; cursor: not-allowed; }
+        #status { margin-top: 20px; color: #94a3b8; }
         .hidden { display: none; }
-        #game-section { padding: 20px; }
-        #amber-stone { font-size: 100px; cursor: pointer; user-select: none; transition: transform 0.1s; }
-        #amber-stone:active { transform: scale(0.9); }
-        .status-msg { font-size: 14px; color: #94a3b8; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="card">
     <h1>Baltic Sands 🌊</h1>
-    <p style="color: #94a3b8;">Mining on Soneium Minato</p>
-    
-    <div id="wallet-ui">
-        <p class="status-msg" id="loading-text">Inicjowanie bezpiecznego połączenia...</p>
-    </div>
+    <button id="login-btn" disabled>ŁADOWANIE...</button>
+    <p id="status">Inicjowanie Sequence Connect...</p>
 
     <div id="game-section" class="hidden">
-        <div id="amber-stone">💎</div>
-        <h2 style="font-size: 32px; margin: 10px 0;">Bursztyn: <span id="counter">0</span></h2>
-        <p><small id="addr-display" style="color: #38bdf8;"></small></p>
+        <div style="font-size: 80px; cursor: pointer;">💎</div>
+        <h2>Bursztyn: <span id="counter">0</span></h2>
+        <p id="wallet-addr"></p>
     </div>
 </div>
 
 <script>
-    // KLUCZE DOKŁADNIE Z TWOJEGO OSTATNIEGO SCREENA
-    const PROJECT_ACCESS_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
-    const WAAS_CONFIG_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
+    const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+    const W_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-    async function startSequence() {
-        // Czekamy na załadowanie skryptu z sieci
+    let connector;
+
+    async function init() {
         if (!window.sequenceConnect) {
-            setTimeout(startSequence, 500);
+            setTimeout(init, 500);
             return;
         }
 
         const { createConfig, SequenceConnect } = window.sequenceConnect;
 
-        // Konfiguracja odzwierciedlająca Twój Playground [cite: image_d763e
+        const config = createConfig('waas', {
+            projectAccessKey: P_KEY,
+            waasConfigKey: W_KEY,
+            defaultChainId: 1946,
+            appName: "Baltic Sands",
+            email: true,
+            // WYŁĄCZAMY RENDER INLINE - to kluczowe
+            renderInline: false, 
+            defaultTheme: "dark"
+        });
+
+        connector = new SequenceConnect(config);
+        
+        const btn = document.getElementById('login-btn');
+        btn.disabled = false;
+        btn.innerText = "ZALOGUJ SIĘ I GRAJ";
+        document.getElementById('status').innerText = "System gotowy ✅";
+    }
+
+    document.getElementById('login-btn').onclick = async () => {
+        try {
+            const data = await connector.connect({ appName: "Baltic Sands" });
+            
+            if (data.connected) {
+                document.getElementById('login-btn').classList.add('hidden');
+                document.getElementById('status').classList.add('hidden');
+                document.getElementById('game-section').classList.remove('hidden');
+                document.getElementById('wallet-addr').innerText = "Portfel: " + data.session.accountAddress;
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Błąd połączenia: " + err.message);
+        }
+    };
+
+    // Gra
+    let count = 0;
+    document.body.addEventListener('click', (e) => {
+        if(e.target.innerText === '💎') {
+            count++;
+            document.getElementById('counter').innerText = count;
+        }
+    });
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
