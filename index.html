@@ -2,97 +2,76 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baltic Sands - Soneium</title>
+    <title>Baltic Sands - Debug Mode</title>
     <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #0f172a; color: white; text-align: center; padding-top: 100px; margin: 0; }
-        .card { max-width: 400px; margin: auto; background: #1e293b; padding: 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        h1 { font-size: 28px; margin-bottom: 10px; }
-        button { background: #7c3aed; color: white; border: none; padding: 18px 30px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; width: 100%; transition: 0.2s; }
-        button:hover { background: #8b5cf6; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        #status { margin-top: 20px; color: #94a3b8; font-size: 14px; }
-        .hidden { display: none; }
-        #amber { font-size: 100px; cursor: pointer; user-select: none; }
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
+        .box { background: #1e293b; padding: 30px; border-radius: 20px; display: inline-block; min-width: 300px; }
+        #debug-log { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 11px; margin-top: 20px; text-align: left; border-radius: 5px; max-height: 150px; overflow-y: auto; }
+        button { background: #7c3aed; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        button:disabled { background: #475569; }
     </style>
 </head>
 <body>
-
-<div class="card">
-    <h1>Baltic Sands 🌊</h1>
-    <p style="color: #94a3b8; margin-bottom: 30px;">Mining on Soneium Minato</p>
-    
-    <button id="login-btn" disabled>ŁADOWANIE...</button>
-    <p id="status">Czekam na bibliotekę...</p>
-
-    <div id="game" class="hidden">
-        <div id="amber">💎</div>
-        <h2>Bursztyn: <span id="count">0</span></h2>
-        <p id="addr" style="color: #38bdf8; font-size: 12px;"></p>
+    <div class="box">
+        <h1>Baltic Sands 🌊</h1>
+        <button id="btn" disabled>INICJOWANIE...</button>
+        <div id="debug-log">Log: Czekam na start...</div>
     </div>
-</div>
 
-<script>
-    // Klucze z Twojego Playground
-    const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
-    const W_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
-
-    let connector;
-
-    async function init() {
-        if (!window.sequenceConnect) {
-            setTimeout(init, 500);
-            return;
-        }
-
-        const { createConfig, SequenceConnect } = window.sequenceConnect;
-
-        const config = createConfig('waas', {
-            projectAccessKey: P_KEY,
-            waasConfigKey: W_KEY,
-            defaultChainId: 1946,
-            appName: "Baltic Sands",
-            email: true,
-            renderInline: false, // KLUCZOWA ZMIANA: Wyłączamy inline, by uniknąć pustego pola
-            defaultTheme: "dark"
-        });
-
-        connector = new SequenceConnect(config);
+    <script>
+        const log = (msg) => { document.getElementById('debug-log').innerText += "\n> " + msg; };
         
-        document.getElementById('login-btn').disabled = false;
-        document.getElementById('login-btn').innerText = "ZALOGUJ SIĘ I GRAJ";
-        document.getElementById('status').innerText = "Połączenie gotowe ✅";
-    }
+        // Klucze z Twojego Playground
+        const P_KEY = "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44";
+        const W_KEY = "eyJwcm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=";
 
-    document.getElementById('login-btn').onclick = async () => {
-        document.getElementById('status').innerText = "Otwieranie okna logowania...";
-        try {
-            // To otworzy bezpieczne okno pop-up
-            const response = await connector.connect({ appName: "Baltic Sands" });
+        async function init() {
+            log("Szukam biblioteki Sequence...");
+            // Sprawdzamy różne możliwe ścieżki eksportu biblioteki Connect
+            const seq = window.sequenceConnect || (window.sequence ? window.sequence.connect : null);
             
-            if (response.connected) {
-                document.getElementById('login-btn').classList.add('hidden');
-                document.getElementById('status').classList.add('hidden');
-                document.getElementById('game').classList.remove('hidden');
-                document.getElementById('addr').innerText = response.session.accountAddress;
+            if (!seq) {
+                log("BŁĄD: Biblioteka nie załadowana. Próbuję ponownie...");
+                setTimeout(init, 1000);
+                return;
             }
-        } catch (err) {
-            console.error(err);
-            alert("Błąd: " + err.message + ". Sprawdź czy zablokowałeś wyskakujące okienka!");
-            document.getElementById('status').innerText = "Błąd połączenia. Odśwież stronę.";
+
+            log("Biblioteka znaleziona. Konfiguruję...");
+            try {
+                const config = seq.createConfig('waas', {
+                    projectAccessKey: P_KEY,
+                    waasConfigKey: W_KEY,
+                    defaultChainId: 1946,
+                    appName: "Baltic Sands",
+                    email: true,
+                    renderInline: false
+                });
+
+                const connector = new seq.SequenceConnect(config);
+                const btn = document.getElementById('btn');
+                btn.disabled = false;
+                btn.innerText = "ZALOGUJ SIĘ";
+                log("SYSTEM GOTOWY ✅");
+
+                btn.onclick = async () => {
+                    log("Otwieram okno logowania...");
+                    try {
+                        const res = await connector.connect();
+                        if (res.connected) {
+                            log("ZALOGOWANO: " + res.session.accountAddress);
+                            alert("Sukces! Adres: " + res.session.accountAddress);
+                        }
+                    } catch (e) {
+                        log("BŁĄD LOGOWANIA: " + e.message);
+                    }
+                };
+            } catch (err) {
+                log("BŁĄD KONFIGURACJI: " + err.message);
+            }
         }
-    };
 
-    // Mechanika gry
-    let score = 0;
-    document.getElementById('amber').onclick = () => {
-        score++;
-        document.getElementById('count').innerText = score;
-    };
-
-    window.onload = init;
-</script>
-
+        window.onload = init;
+    </script>
 </body>
 </html>
