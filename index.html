@@ -51,4 +51,54 @@
             // Tworzymy instancję SequenceWaaS korzystając z załadowanej biblioteki window.sequence
             seqWallet = new window.sequence.waas.SequenceWaaS({
                 projectAccessKey: P_ACCESS_KEY,
-                waasConfigKey: W_
+                waasConfigKey: W_CONFIG_KEY,
+                network: 'soneium-minato'
+            });
+            console.log("Sequence SDK zainicjowane.");
+        } catch (err) {
+            console.error("Błąd inicjalizacji SDK:", err);
+        }
+    };
+
+    let count = 0;
+    const loginBtn = document.getElementById('login-btn');
+    const loginSection = document.getElementById('login-section');
+    const gameSection = document.getElementById('game-section');
+    const counterDisplay = document.getElementById('counter');
+    const amberStone = document.getElementById('amber-stone');
+    const walletAddrDisplay = document.getElementById('wallet-addr');
+    const statusText = document.getElementById('status');
+
+    loginBtn.addEventListener('click', async () => {
+        statusText.innerText = "Łączenie z portfelem...";
+        
+        try {
+            // Próba logowania
+            const auth = await seqWallet.signIn({
+                signInOptions: { 
+                    appName: 'Baltic Sands'
+                }
+            });
+
+            console.log('Autoryzacja udana:', auth);
+            const address = await auth.wallet.getAddress();
+            
+            // Pokazujemy grę
+            walletAddrDisplay.innerText = address.substring(0,6) + "..." + address.substring(38);
+            loginSection.classList.add('hidden');
+            gameSection.classList.remove('hidden');
+            
+        } catch (error) {
+            console.error('Błąd podczas logowania:', error);
+            statusText.innerHTML = "<span style='color:red;'>Błąd: Sprawdź konsolę (F12) lub ustawienia Allowed Origins.</span>";
+        }
+    });
+
+    amberStone.addEventListener('click', () => {
+        count++;
+        counterDisplay.innerText = count;
+    });
+</script>
+
+</body>
+</html>
