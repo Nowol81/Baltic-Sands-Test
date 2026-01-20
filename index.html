@@ -2,94 +2,180 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Baltic Sands - Soneium</title>
-    <script src="https://cdn.jsdelivr.net/npm/@0xsequence/waas@latest/dist/waas.umd.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Soneium</title>
+    
+    <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
+
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .card { background: #1e293b; padding: 40px; border-radius: 20px; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        button { background: #7c3aed; color: white; border: none; padding: 15px 35px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s; }
-        button:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
-        #debug-box { background: #000; color: #22c55e; padding: 15px; font-family: monospace; font-size: 12px; margin-top: 25px; text-align: left; border-radius: 8px; border: 1px solid #166534; max-width: 400px; margin-left: auto; margin-right: auto; }
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            background: #7c3aed; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+        }
+        #hello-text { display: none; font-size: 48px; font-weight: bold; }
+        .status { margin-top: 10px; color: #666; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1 style="margin-bottom: 5px;">Baltic Sands 🌊</h1>
-    <p style="color: #94a3b8; margin-bottom: 25px;">Soneium Minato Mining</p>
-    
-    <button id="login-btn" disabled>ŁADOWANIE SILNIKA...</button>
-    
-    <div id="debug-box">
-        <div>System: Inicjalizacja...</div>
+    <div id="login-section">
+        <button id="login-btn">Zaloguj się do Soneium</button>
+        <p class="status" id="status-msg">Czekam na start...</p>
     </div>
-</div>
 
-<script>
-    const debug = (msg) => {
-        const box = document.getElementById('debug-box');
-        box.innerHTML += `<div>> ${msg}</div>`;
-        console.log(msg);
-    };
+    <div id="hello-text">
+        HALLO! 🌊
+        <p style="font-size: 16px; color: #38bdf8;" id="user-addr"></p>
+    </div>
 
-    // Klucze z Twojej ostatniej konfiguracji Sequence.js
-    const CONFIG = {
-        projectAccessKey: "AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44",
-        waasConfigKey: "eyJ3cm9qZWN0SWQiOjQ3MjI1LCJycGNTZXJ2ZXIiOiJodHRwczovL3dhYXMuc2VxdWVuY2UuYXBwIn0=",
-        network: "soneium-minato"
-    };
+    <script>
+        // TUTAJ WKLEJ SWÓJ NOWY KLUCZ Z NOWEGO PROJEKTU
+        const MOJ_KLUCZ = "<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello Soneium</title>
+    
+    <script src="https://unpkg.com/@0xsequence/connect@latest/dist/sequence-connect.umd.js"></script>
 
-    let waasInstance = null;
-
-    // Funkcja sprawdzająca dostępność biblioteki co 500ms
-    const checkLibrary = setInterval(() => {
-        if (window.sequenceWaas) {
-            clearInterval(checkLibrary);
-            debug("Biblioteka Sequence załadowana pomyślnie ✅");
-            initWaas();
-        } else {
-            debug("Szukanie biblioteki na serwerze...");
+    <style>
+        body { 
+            background-color: black; 
+            color: white; 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
         }
-    }, 1000);
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            background: #7c3aed; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+        }
+        #hello-text { display: none; font-size: 48px; font-weight: bold; }
+        .status { margin-top: 10px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
 
-    function initWaas() {
-        try {
-            waasInstance = new window.sequenceWaas.SequenceWaaS({
-                projectAccessKey: CONFIG.projectAccessKey,
-                waasConfigKey: CONFIG.waasConfigKey,
-                network: CONFIG.network
+    <div id="login-section">
+        <button id="login-btn">Zaloguj się do Soneium</button>
+        <p class="status" id="status-msg">Czekam na start...</p>
+    </div>
+
+    <div id="hello-text">
+        HALLO! 🌊
+        <p style="font-size: 16px; color: #38bdf8;" id="user-addr"></p>
+    </div>
+
+    <script>
+        // TUTAJ WKLEJ SWÓJ NOWY KLUCZ Z NOWEGO PROJEKTU
+        const MOJ_KLUCZ = "TUTAJ_WKLEJ_TWOJ_NOWY_PROJECT_ACCESS_KEY";
+
+        async function init() {
+            const status = document.getElementById('status-msg');
+            
+            // Sprawdzamy czy biblioteka dojechała
+            if (!window.sequenceConnect) {
+                status.innerText = "Ładowanie silnika... (odśwież jeśli trwa to długo)";
+                setTimeout(init, 1000);
+                return;
+            }
+            
+            status.innerText = "Silnik gotowy ✅";
+            const { createConfig, SequenceConnect } = window.sequenceConnect;
+
+            const config = createConfig('waas', {
+                projectAccessKey: MOJ_KLUCZ,
+                defaultChainId: 1946, // Soneium Minato
+                appName: "Baltic Hello"
             });
-            
-            const btn = document.getElementById('login-btn');
-            btn.disabled = false;
-            btn.innerText = "ZALOGUJ SIĘ";
-            debug("Silnik gotowy. Czekam na gracza.");
-        } catch (err) {
-            debug("BŁĄD INICJALIZACJI: " + err.message);
-        }
-    }
 
-    document.getElementById('login-btn').onclick = async () => {
-        debug("Próba połączenia z portfelem...");
-        try {
-            const result = await waasInstance.signIn({
-                projectName: "Baltic Sands"
-            }, "baltic-sands-session-v1");
-            
-            if (result.walletAddress) {
-                debug("POŁĄCZONO: " + result.walletAddress);
-                document.getElementById('login-btn').innerText = "ZALOGOWANO";
-                alert("Witaj! Twój adres portfela: " + result.walletAddress);
-            }
-        } catch (err) {
-            debug("BŁĄD LOGOWANIA: " + err.message);
-            // Jeśli błąd to 'Popup blocked', poinformuj o tym
-            if (err.message.includes('popup')) {
-                alert("Zablokowano wyskakujące okno! Zezwól na nie w przeglądarce.");
-            }
-        }
-    };
-</script>
+            const connector = new SequenceConnect(config);
 
+            document.getElementById('login-btn').onclick = async () => {
+                status.innerText = "Otwieranie bramy...";
+                try {
+                    const wallet = await connector.connect();
+                    if (wallet.connected) {
+                        document.getElementById('login-section').style.display = 'none';
+                        document.getElementById('hello-text').style.display = 'block';
+                        document.getElementById('user-addr').innerText = "Twój portfel: " + wallet.session.accountAddress;
+                    }
+                } catch (err) {
+                    status.innerText = "Błąd: " + err.message;
+                    console.error(err);
+                }
+            };
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>";
+
+        async function init() {
+            const status = document.getElementById('status-msg');
+            
+            // Sprawdzamy czy biblioteka dojechała
+            if (!window.sequenceConnect) {
+                status.innerText = "Ładowanie silnika... (odśwież jeśli trwa to długo)";
+                setTimeout(init, 1000);
+                return;
+            }
+            
+            status.innerText = "Silnik gotowy ✅";
+            const { createConfig, SequenceConnect } = window.sequenceConnect;
+
+            const config = createConfig('waas', {
+                projectAccessKey: MOJ_KLUCZ,
+                defaultChainId: 1946, // Soneium Minato
+                appName: "Baltic Hello"
+            });
+
+            const connector = new SequenceConnect(config);
+
+            document.getElementById('login-btn').onclick = async () => {
+                status.innerText = "Otwieranie bramy...";
+                try {
+                    const wallet = await connector.connect();
+                    if (wallet.connected) {
+                        document.getElementById('login-section').style.display = 'none';
+                        document.getElementById('hello-text').style.display = 'block';
+                        document.getElementById('user-addr').innerText = "Twój portfel: " + wallet.session.accountAddress;
+                    }
+                } catch (err) {
+                    status.innerText = "Błąd: " + err.message;
+                    console.error(err);
+                }
+            };
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
