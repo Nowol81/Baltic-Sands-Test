@@ -3,72 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baltic Sands Clicker</title>
-    <script src="https://unpkg.com/0xsequence@latest/dist/0xsequence.umd.min.js"></script>
+    <title>Baltic Sands - Mining Game</title>
+    <script src="https://nodes.sequence.app/umd/sequence.js"></script>
     <style>
-        body { background: #1a1a1a; color: #ffbf00; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        #amber { width: 180px; height: 180px; background: radial-gradient(circle, #ffcc33, #e68a00); border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 30px rgba(255, 191, 0, 0.6); cursor: pointer; transition: transform 0.1s; margin: 30px auto; display: none; }
-        #amber:active { transform: scale(0.95); }
-        button { padding: 16px 32px; font-size: 18px; background: #e68a00; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        button:hover { background: #ff9900; }
-        #status { font-size: 20px; margin-bottom: 10px; }
-        #counter { font-size: 24px; color: white; display: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f0f4f8; color: #333; padding-top: 50px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; min-width: 300px; }
+        #amber-stone { font-size: 80px; cursor: pointer; transition: transform 0.1s; user-select: none; }
+        #amber-stone:active { transform: scale(0.9); }
+        .hidden { display: none; }
+        button { background-color: #6c5ce7; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #a29bfe; }
+        #status { margin-top: 15px; font-weight: bold; color: #666; }
     </style>
 </head>
 <body>
-    <h1>Baltic Sands</h1>
-    <p id="status">Zaloguj się, aby zbierać ATT</p>
-    
-    <button id="loginBtn" onclick="connect()">ZALOGUJ PRZEZ E-MAIL</button>
-    
-    <div id="amber" onclick="clickAmber()"></div>
-    <div id="counter">Bursztyny: <span id="clicks">0</span></div>
 
-    <script>
-        // TWOJE DANE Z BUILDERA - SPRAWDZONE I POPRAWIONE
-        const ACCESS_KEY = 'AQAAAAAAALh595gDacXW_KIiT1eAhb8UaJY';
-        const CONTRACT_ADDRESS = '0xf58c03c0b3aa421626160d400265cc496c05ab5b';
+<div class="container">
+    <h1>Baltic Sands 🌊</h1>
+    <p>Wydobywaj bursztyn na sieci Soneium</p>
 
-        // Inicjalizacja portfela Sequence
-        const sequence = window['0xsequence'];
-        const wallet = sequence.initWallet(ACCESS_KEY, { network: 'soneium-minato' });
+    <div id="login-section">
+        <button id="login-btn">ZALOGUJ PRZEZ E-MAIL</button>
+        <p id="status">Zaloguj się, aby zacząć wydobycie</p>
+    </div>
 
-        async function connect() {
-            try {
-                console.log("Łączenie z Sequence...");
-                const connectDetails = await wallet.connect({ 
-                    app: 'Baltic Sands', 
-                    authorize: true,
-                    settings: {
-                        theme: "dark",
-                        bannerUrl: "https://sunny-mooncake-f2f6e5.netlify.app/logo.png"
-                    }
-                });
+    <div id="game-section" class="hidden">
+        <div id="amber-stone">💎</div>
+        <h2>Twój Bursztyn: <span id="counter">0</span></h2>
+        <p>Klikaj w bursztyn, aby zbierać punkty!</p>
+        <p><small>Adres portfela: <span id="wallet-addr">...</span></small></p>
+    </div>
+</div>
 
-                if (connectDetails.connected) {
-                    console.log("Połączono! Adres portfela:", connectDetails.session.accountAddress);
-                    document.getElementById('loginBtn').style.display = 'none';
-                    document.getElementById('amber').style.display = 'block';
-                    document.getElementById('counter').style.display = 'block';
-                    document.getElementById('status').innerText = 'Klikaj w bursztyn!';
-                }
-            } catch (error) {
-                console.error("Błąd logowania:", error);
-                alert("Nie udało się zalogować. Sprawdź, czy adres strony jest dodany w Sequence Builderze!");
-            }
-        }
+<script>
+    // --- KONFIGURACJA Z TWOJEGO SEQUENCE BUILDERA ---
+    // PAMIĘTAJ: Wklej oba klucze dokładnie w te miejsca:
+    const PROJECT_ACCESS_KEY = 'AQAAAAAAALh5IxSkQVSt1pHvWybD9OlDl44'; 
+    const WAAS_CONFIG_KEY = 'AQAAAAAAALh5rxQ57EGIOirK4bNGjewaTUY';
 
-        let clicks = 0;
-        function clickAmber() {
-            clicks++;
-            document.getElementById('clicks').innerText = clicks;
+    // Inicjalizacja Sequence zgodnie z dokumentacją Soneium Minato
+    const sequence = new sequence.waas.SequenceWaaS({
+        projectAccessKey: PROJECT_ACCESS_KEY,
+        waasConfigKey: WAAS_CONFIG_KEY,
+        network: 'soneium-minato' // Sieć testowa Soneium
+    });
+
+    let count = 0;
+    const loginBtn = document.getElementById('login-btn');
+    const loginSection = document.getElementById('login-section');
+    const gameSection = document.getElementById('game-section');
+    const counterDisplay = document.getElementById('counter');
+    const amberStone = document.getElementById('amber-stone');
+    const walletAddrDisplay = document.getElementById('wallet-addr');
+    const statusText = document.getElementById('status');
+
+    // Obsługa logowania
+    loginBtn.addEventListener('click', async () => {
+        statusText.innerText = "Otwieram bezpieczne logowanie...";
+        try {
+            // Wywołanie portfela Embedded (WaaS)
+            const wallet = await sequence.signIn({
+                signInOptions: { appName: 'Baltic Sands Game' }
+            });
+
+            console.log('Zalogowano pomyślnie:', wallet);
+            const address = await wallet.getAddress();
             
-            // Co 10 kliknięć pokazujemy komunikat
-            if (clicks % 10 === 0) {
-                console.log("Znaleziono skarb! Przygotowanie do wysyłki tokenów...");
-                alert("Znalazłeś 10 bursztynów! W pełnej wersji gry teraz otrzymałbyś tokeny ATT.");
-            }
+            // Przełączanie widoku po zalogowaniu
+            walletAddrDisplay.innerText = address.substring(0,6) + "..." + address.substring(38);
+            loginSection.classList.add('hidden');
+            gameSection.classList.remove('hidden');
+        } catch (error) {
+            console.error('Błąd logowania:', error);
+            statusText.innerText = "Błąd: " + error.message;
+            alert("Nie udało się zalogować. Sprawdź ustawienia Allowed Origins w Builderze!");
         }
-    </script>
+    });
+
+    // Mechanika klikania
+    amberStone.addEventListener('click', () => {
+        count++;
+        counterDisplay.innerText = count;
+        
+        // Co 10 kliknięć informujemy o postępie (miejsce na Twój Smart Kontrakt)
+        if (count % 10 === 0) {
+            console.log("Osiągnięto próg 10 bursztynów. System gotowy do mintowania ATT.");
+        }
+    });
+
+</script>
+
 </body>
 </html>
